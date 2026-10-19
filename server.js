@@ -175,7 +175,12 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && p.startsWith('/uploads/')) {
       return serveFile(req, res, path.join(UPLOADS, path.basename(p)));
     }
-
+    if (req.method === 'GET' && p === '/favicon.png') {
+      const f = path.join(__dirname, 'favicon.png');
+      if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
+      res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' });
+      return res.end(fs.readFileSync(f));
+    }
     if (!p.startsWith('/api/')) { res.writeHead(404); return res.end('Topilmadi'); }
 
     // Kirish / ro'yxatdan o'tish
