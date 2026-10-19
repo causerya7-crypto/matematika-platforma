@@ -14,10 +14,11 @@
   .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:14px; }
   h2 { margin:0 0 12px; font-size:20px; }
   input[type=text], input[type=password], input[type=number] { width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-size:15px; margin-bottom:10px; }
+  input[type=file] { margin:6px 0 10px; max-width:100%; }
   button { background:var(--main); color:#fff; border:0; border-radius:8px; padding:10px 14px; font-size:15px; cursor:pointer; }
   button.sec { background:#e8edf3; color:var(--text); }
   button.del { background:var(--bad); }
-  button:disabled { opacity:.6; }
+  button:disabled { opacity:.5; cursor:default; }
   .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   .row > input { flex:1; margin-bottom:0; min-width:140px; }
   .item { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 0; border-top:1px solid var(--line); }
@@ -25,12 +26,35 @@
   .muted { color:var(--muted); font-size:14px; }
   .err { color:var(--bad); margin:8px 0; min-height:20px; }
   .q img { max-width:100%; border:1px solid var(--line); border-radius:8px; display:block; margin:8px 0; }
-  .opts label { display:inline-flex; align-items:center; gap:6px; margin-right:18px; font-size:17px; cursor:pointer; }
-  .opts input { width:20px; height:20px; }
-  .ok { color:var(--ok); font-weight:600; }
+  .ok { color:var(--ok); font-weight:600; margin:6px 0; }
   .big { font-size:32px; font-weight:700; }
   table { width:100%; border-collapse:collapse; font-size:14px; }
   th, td { text-align:left; padding:8px 6px; border-top:1px solid var(--line); }
+
+  /* Savol sahifasi */
+  .top { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+  .bar { height:6px; background:var(--line); border-radius:4px; overflow:hidden; margin:10px 0 4px; }
+  .bar i { display:block; height:100%; background:var(--main); }
+  .strip { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 14px; }
+  .strip button { min-width:38px; padding:8px 6px; font-size:13px; background:#e8edf3; color:var(--text); }
+  .strip button.cur { outline:3px solid var(--main); outline-offset:1px; }
+  .strip button.right { background:var(--ok); color:#fff; }
+  .strip button.wrong { background:var(--bad); color:#fff; }
+  .opts { display:flex; gap:10px; flex-wrap:wrap; margin:12px 0; }
+  button.opt { background:#fff; color:var(--text); border:2px solid var(--line); min-width:70px; padding:12px 0; font-size:20px; font-weight:600; }
+  button.opt:hover:not(:disabled) { border-color:var(--main); }
+  button.opt:disabled { opacity:1; }
+  button.opt.right { background:#dcfce7; border-color:var(--ok); color:#166534; }
+  button.opt.wrong { background:#fee2e2; border-color:var(--bad); color:#991b1b; }
+  input.right { border-color:var(--ok); background:#f0fdf4; }
+  input.wrong { border-color:var(--bad); background:#fef2f2; }
+  .fb { margin:2px 0 12px; font-weight:600; }
+  .fb.right { color:var(--ok); }
+  .fb.wrong { color:var(--bad); }
+  .video video { width:100%; border-radius:8px; background:#000; display:block; }
+  .video iframe { width:100%; aspect-ratio:16/9; border:0; border-radius:8px; background:#000; display:block; }
+  .nav { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  .vid { border-top:1px solid var(--line); margin-top:12px; padding-top:12px; }
 </style>
 </head>
 <body>
@@ -41,6 +65,7 @@
 <main id="app"></main>
 
 <script>
+const MAXC = 35; // 1..35 variantli, 36..45 ochiq javobli
 const S = { token: localStorage.getItem('token'), name: localStorage.getItem('name'), role: localStorage.getItem('role') };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
@@ -126,53 +151,195 @@ async function delTest(id) {
   if (confirm("Testni o'chirasizmi?")) { await api('/tests/' + id, 'DELETE'); home(); }
 }
 
-/* ---------- Test ---------- */
+/* ---------- Test (umumiy) ---------- */
+let T = null;      // hozirgi test
+let idx = 0;       // hozirgi savol o'rni
+let prog = {};     // num -> { answer, res }  (foydalanuvchi javoblari va tekshiruv natijasi)
+
 async function openTest(id) {
-  const t = await api('/tests/' + id);
-  const admin = S.role === 'admin';
-  const qs = t.questions.map((q) => {
-    const open = q.num > 35;
-    let body;
-    if (admin) {
-      body = `<div class="ok">To'g'ri javob: ${open ? 'a) ' + esc(q.correct.a) + ' &nbsp; b) ' + esc(q.correct.b) : esc(q.correct)}</div>
-        <button class="del" onclick="delQ('${t.id}',${q.num})">Savolni o'chirish</button>`;
-    } else if (open) {
-      body = `<input type="text" data-a="${q.num}a" placeholder="a) javob"><input type="text" data-a="${q.num}b" placeholder="b) javob">`;
-    } else {
-      body = `<div class="opts">${['A','B','C','D'].map((o) => `<label><input type="radio" name="q${q.num}" value="${o}">${o}</label>`).join('')}</div>`;
-    }
-    return `<div class="card q"><b>${q.num}-savol</b><img src="/uploads/${q.image}" alt="">${body}</div>`;
+  T = await api('/tests/' + id);
+  if (S.role === 'admin') return adminView();
+  prog = loadProg();
+  const first = T.questions.findIndex((q) => !prog[q.num]);
+  idx = first < 0 ? 0 : first;
+  render();
+}
+
+const pkey = () => 'prog_' + S.name + '_' + T.id;
+function loadProg() { try { return JSON.parse(localStorage.getItem(pkey()) || '{}'); } catch (e) { return {}; } }
+function saveProg() { try { localStorage.setItem(pkey(), JSON.stringify(prog)); } catch (e) {} }
+
+/* ---------- Test: o'quvchi ko'rinishi (har savol alohida sahifa) ---------- */
+function videoBody(v) {
+  if (!v) return '<div class="muted">Bu savol uchun yechim videosi hali qo\'yilmagan.</div>';
+  if (v.kind === 'file') return `<video controls preload="metadata" src="${esc(v.url)}"></video>`;
+  if (v.kind === 'embed') return `<iframe src="${esc(v.url)}" allowfullscreen allow="encrypted-media; picture-in-picture"></iframe>`;
+  return `<a href="${esc(v.url)}" target="_blank" rel="noopener">Videoni ochish</a>`;
+}
+
+function answerHTML(q, a) {
+  if (q.num <= MAXC) {
+    const btns = ['A', 'B', 'C', 'D'].map((o) => {
+      let c = '';
+      if (a) { if (o === a.res.right) c = 'right'; else if (o === a.answer) c = 'wrong'; }
+      return `<button class="opt ${c}" ${a ? 'disabled' : ''} onclick="pick('${o}')">${o}</button>`;
+    }).join('');
+    let fb = '';
+    if (a) fb = a.res.correct
+      ? '<div class="fb right">To\'g\'ri!</div>'
+      : `<div class="fb wrong">Noto'g'ri. To'g'ri javob: ${esc(a.res.right)}</div>`;
+    return `<div class="opts">${btns}</div>${fb}`;
+  }
+  const part = (k) => {
+    const val = a ? a.answer[k] : '';
+    const ok = a ? a.res.parts[k] : null;
+    let h = `<label class="muted" for="o${k}">${k}) javob</label>
+      <input type="text" id="o${k}" value="${esc(val || '')}" ${a ? 'disabled' : ''} class="${a ? (ok ? 'right' : 'wrong') : ''}">`;
+    if (a) h += ok
+      ? '<div class="fb right">To\'g\'ri</div>'
+      : `<div class="fb wrong">Noto'g'ri. To'g'ri javob: ${esc(a.res.right[k])}</div>`;
+    return h;
+  };
+  return part('a') + part('b') + (a ? '' : '<button onclick="checkOpen()">Tekshirish</button>');
+}
+
+function render() {
+  header();
+  const qs = T.questions;
+  if (!qs.length) {
+    $('app').innerHTML = `<button class="sec" onclick="home()">← Orqaga</button>
+      <div class="card muted" style="margin-top:12px">Bu testda hali savollar yo'q</div>`;
+    return;
+  }
+  const q = qs[idx];
+  const a = prog[q.num];
+  const done = qs.filter((x) => prog[x.num]).length;
+  const strip = qs.map((x, i) => {
+    const p = prog[x.num];
+    const cls = (i === idx ? 'cur ' : '') + (p ? (p.res.correct ? 'right' : 'wrong') : '');
+    return `<button class="${cls}" onclick="go(${i})">${x.num}</button>`;
+  }).join('');
+
+  $('app').innerHTML = `
+    <div class="top">
+      <button class="sec" onclick="home()">← Orqaga</button>
+      <div class="muted">${esc(T.title)} · javob berildi: ${done}/${qs.length}</div>
+    </div>
+    <div class="bar"><i style="width:${Math.round(done / qs.length * 100)}%"></i></div>
+    <div class="strip">${strip}</div>
+    <div class="card q">
+      <b>${q.num}-savol</b> <span class="muted">(${idx + 1} / ${qs.length})</span>
+      <img src="/uploads/${esc(q.image)}" alt="">
+      ${answerHTML(q, a)}
+    </div>
+    ${a ? `<div class="card video"><h2>Yechim videosi</h2>${videoBody(a.res.video)}</div>` : ''}
+    <div class="nav">
+      <button class="sec" onclick="go(${idx - 1})" ${idx === 0 ? 'disabled' : ''}>← Oldingi</button>
+      <button onclick="finish()" class="${idx === qs.length - 1 ? '' : 'sec'}">Yakunlash</button>
+      <button class="sec" onclick="go(${idx + 1})" ${idx === qs.length - 1 ? 'disabled' : ''}>Keyingi →</button>
+    </div>`;
+}
+
+function go(i) {
+  if (i < 0 || i >= T.questions.length) return;
+  idx = i;
+  render();
+  window.scrollTo(0, 0);
+}
+
+async function pick(o) {
+  const q = T.questions[idx];
+  if (prog[q.num]) return;
+  try {
+    const res = await api('/tests/' + T.id + '/check', 'POST', { num: q.num, answer: o });
+    prog[q.num] = { answer: o, res };
+    saveProg();
+    render();
+  } catch (e) { alert(e.message); }
+}
+
+async function checkOpen() {
+  const q = T.questions[idx];
+  if (prog[q.num]) return;
+  const answer = { a: $('oa').value, b: $('ob').value };
+  if (!answer.a.trim() && !answer.b.trim()) { alert('Avval javobni yozing'); return; }
+  try {
+    const res = await api('/tests/' + T.id + '/check', 'POST', { num: q.num, answer });
+    prog[q.num] = { answer, res };
+    saveProg();
+    render();
+  } catch (e) { alert(e.message); }
+}
+
+async function finish() {
+  const left = T.questions.filter((q) => !prog[q.num]).length;
+  if (!confirm(left ? left + ' ta savol javobsiz qoldi. Testni yakunlaysizmi?' : 'Testni yakunlaysizmi?')) return;
+  const answers = {};
+  T.questions.forEach((q) => { if (prog[q.num]) answers[q.num] = prog[q.num].answer; });
+  try {
+    const r = await api('/tests/' + T.id + '/submit', 'POST', { answers });
+    try { localStorage.removeItem(pkey()); } catch (e) {}
+    $('app').innerHTML = `<div class="card"><h2>Natija</h2><div class="big">${r.score} / ${r.max}</div>
+      <p class="muted">Variantli savol — 1 ball, ochiq savolda a va b har biri 1 ball.</p>
+      <button onclick="home()">Bosh sahifa</button></div>`;
+  } catch (e) { alert(e.message); }
+}
+
+/* ---------- Test: admin ko'rinishi ---------- */
+function adminView() {
+  const cards = T.questions.map((q) => {
+    const open = q.num > MAXC;
+    const corr = open ? `a) ${esc(q.correct.a)} &nbsp; b) ${esc(q.correct.b)}` : esc(q.correct);
+    const vid = q.video
+      ? `<div class="video" style="margin:8px 0">${videoBody(q.video)}</div>
+         <button class="sec" onclick="delVideo(${q.num})">Videoni o'chirish</button>`
+      : videoForm(q.num);
+    return `<div class="card q"><b>${q.num}-savol</b>
+      <img src="/uploads/${esc(q.image)}" alt="">
+      <div class="ok">To'g'ri javob: ${corr}</div>
+      <div class="vid"><b>Yechim videosi</b>${vid}</div>
+      <div style="margin-top:12px"><button class="del" onclick="delQ(${q.num})">Savolni o'chirish</button></div>
+    </div>`;
   }).join('');
 
   $('app').innerHTML = `
     <button class="sec" onclick="home()">← Orqaga</button>
-    <h2 style="margin-top:12px">${esc(t.title)}</h2>
-    ${admin ? adminForm(t.id) : ''}
-    ${qs || '<div class="card muted">Bu testda hali savollar yo\'q</div>'}
-    ${!admin && t.questions.length ? `<button onclick="submitTest('${t.id}')">Yakunlash</button><div id="res"></div>` : ''}`;
-  if (admin) numChanged();
+    <h2 style="margin-top:12px">${esc(T.title)}</h2>
+    ${adminForm()}
+    ${cards || '<div class="card muted">Bu testda hali savollar yo\'q</div>'}`;
+  numChanged();
 }
 
-function adminForm(id) {
+function adminForm() {
   return `<div class="card">
     <h2>Savol qo'shish / almashtirish</h2>
     <input type="number" id="num" min="1" max="45" placeholder="Savol raqami (1–45)" oninput="numChanged()">
     <div class="muted">Rasm (savol va variantlar rasmda bo'ladi):</div>
-    <input type="file" id="img" accept="image/*" style="margin:6px 0 12px">
+    <input type="file" id="img" accept="image/*">
     <div id="ans"></div>
     <div class="err" id="e"></div>
-    <button onclick="saveQ('${id}')">Saqlash</button>
+    <button onclick="saveQ()">Saqlash</button>
+    <div class="muted" style="margin-top:10px">Savol saqlangach, uning kartasida "Yechim videosi" qo'shish qismi paydo bo'ladi.</div>
   </div>`;
+}
+
+function videoForm(num) {
+  return `<div class="muted">Video fayl yuklang (mp4, webm — 300 MB gacha):</div>
+    <input type="file" id="vf${num}" accept="video/*">
+    <button onclick="uploadVideo(${num})">Yuklash</button>
+    <div class="muted" style="margin:10px 0 6px">yoki havola qo'ying (YouTube va boshqalar):</div>
+    <div class="row"><input type="text" id="vu${num}" placeholder="https://..."><button onclick="saveVideoUrl(${num})">Saqlash</button></div>
+    <div class="err" id="vs${num}"></div>`;
 }
 
 function numChanged() {
   const n = parseInt($('num').value, 10);
-  if (n > 35) {
+  if (n > MAXC) {
     $('ans').innerHTML = `<div class="muted">Ochiq savol: ikkita to'g'ri javob</div>
       <input type="text" id="ca" placeholder="a) to'g'ri javob"><input type="text" id="cb" placeholder="b) to'g'ri javob">`;
   } else {
     $('ans').innerHTML = `<div class="muted">To'g'ri variant:</div>
-      <div class="opts" style="margin:6px 0 12px">${['A','B','C','D'].map((o) => `<label><input type="radio" name="cor" value="${o}">${o}</label>`).join('')}</div>`;
+      <div class="opts">${['A','B','C','D'].map((o) => `<label style="font-size:17px;margin-right:14px"><input type="radio" name="cor" value="${o}"> ${o}</label>`).join('')}</div>`;
   }
 }
 
@@ -180,35 +347,54 @@ function readFile(f) {
   return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
 }
 
-async function saveQ(id) {
+async function saveQ() {
   try {
     const num = parseInt($('num').value, 10);
     const f = $('img').files[0];
     const body = { num };
     if (f) body.image = await readFile(f);
-    if (num > 35) body.correct = { a: $('ca').value, b: $('cb').value };
+    if (num > MAXC) body.correct = { a: $('ca').value, b: $('cb').value };
     else { const c = document.querySelector('input[name=cor]:checked'); body.correct = c ? c.value : ''; }
-    await api('/tests/' + id + '/questions', 'POST', body);
-    openTest(id);
+    await api('/tests/' + T.id + '/questions', 'POST', body);
+    openTest(T.id);
   } catch (e) { $('e').textContent = e.message; }
 }
 
-async function delQ(id, num) {
-  if (confirm(num + "-savolni o'chirasizmi?")) { await api('/tests/' + id + '/questions/' + num, 'DELETE'); openTest(id); }
+async function delQ(num) {
+  if (confirm(num + "-savolni o'chirasizmi?")) { await api('/tests/' + T.id + '/questions/' + num, 'DELETE'); openTest(T.id); }
 }
 
-async function submitTest(id) {
-  const answers = {};
-  document.querySelectorAll('input[type=radio]:checked').forEach((r) => { answers[r.name.slice(1)] = r.value; });
-  document.querySelectorAll('input[data-a]').forEach((i) => {
-    const k = i.dataset.a, num = k.slice(0, -1), part = k.slice(-1);
-    (answers[num] = answers[num] || {})[part] = i.value;
-  });
-  if (!confirm('Javoblarni yuborasizmi?')) return;
-  const r = await api('/tests/' + id + '/submit', 'POST', { answers });
-  $('app').innerHTML = `<div class="card"><h2>Natija</h2><div class="big">${r.score} / ${r.max}</div>
-    <p class="muted">Variantli savollar — 1 ball, ochiq savollarda a va b — har biri 1 ball.</p>
-    <button onclick="home()">Bosh sahifa</button></div>`;
+function uploadVideo(num) {
+  const f = $('vf' + num).files[0];
+  const st = $('vs' + num);
+  if (!f) { st.className = 'err'; st.textContent = 'Avval video faylni tanlang'; return; }
+  if (f.size > 300 * 1024 * 1024) { st.className = 'err'; st.textContent = 'Fayl 300 MB dan katta'; return; }
+  const x = new XMLHttpRequest();
+  x.open('POST', '/api/tests/' + T.id + '/questions/' + num + '/video');
+  x.setRequestHeader('Authorization', 'Bearer ' + S.token);
+  x.setRequestHeader('Content-Type', f.type || 'video/mp4');
+  x.upload.onprogress = (e) => {
+    if (e.lengthComputable) { st.className = 'muted'; st.textContent = 'Yuklanmoqda: ' + Math.round(e.loaded / e.total * 100) + '%'; }
+  };
+  x.onload = () => {
+    if (x.status === 200) return openTest(T.id);
+    let m = 'Xatolik';
+    try { m = JSON.parse(x.responseText).error; } catch (e) {}
+    st.className = 'err'; st.textContent = m;
+  };
+  x.onerror = () => { st.className = 'err'; st.textContent = 'Yuklashda xatolik'; };
+  x.send(f);
+}
+
+async function saveVideoUrl(num) {
+  try {
+    await api('/tests/' + T.id + '/questions/' + num + '/video-url', 'POST', { url: $('vu' + num).value });
+    openTest(T.id);
+  } catch (e) { $('vs' + num).textContent = e.message; }
+}
+
+async function delVideo(num) {
+  if (confirm("Yechim videosini o'chirasizmi?")) { await api('/tests/' + T.id + '/questions/' + num + '/video', 'DELETE'); openTest(T.id); }
 }
 
 /* ---------- Natijalar ---------- */
