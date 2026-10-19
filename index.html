@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test sayti</title>
+<style>
+  :root { --bg:#f4f6f8; --card:#fff; --text:#1f2933; --muted:#6b7785; --main:#2563eb; --bad:#dc2626; --ok:#16a34a; --line:#e2e8f0; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, Arial, sans-serif; background:var(--bg); color:var(--text); }
+  header { background:var(--card); border-bottom:1px solid var(--line); padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+  header b { font-size:18px; cursor:pointer; }
+  main { max-width:760px; margin:0 auto; padding:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:14px; }
+  h2 { margin:0 0 12px; font-size:20px; }
+  input[type=text], input[type=password], input[type=number] { width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-size:15px; margin-bottom:10px; }
+  button { background:var(--main); color:#fff; border:0; border-radius:8px; padding:10px 14px; font-size:15px; cursor:pointer; }
+  button.sec { background:#e8edf3; color:var(--text); }
+  button.del { background:var(--bad); }
+  button:disabled { opacity:.6; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .row > input { flex:1; margin-bottom:0; min-width:140px; }
+  .item { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 0; border-top:1px solid var(--line); }
+  .item:first-child { border-top:0; }
+  .muted { color:var(--muted); font-size:14px; }
+  .err { color:var(--bad); margin:8px 0; min-height:20px; }
+  .q img { max-width:100%; border:1px solid var(--line); border-radius:8px; display:block; margin:8px 0; }
+  .opts label { display:inline-flex; align-items:center; gap:6px; margin-right:18px; font-size:17px; cursor:pointer; }
+  .opts input { width:20px; height:20px; }
+  .ok { color:var(--ok); font-weight:600; }
+  .big { font-size:32px; font-weight:700; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px 6px; border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+<header>
+  <b onclick="home()">📝 Test sayti</b>
+  <div id="who"></div>
+</header>
+<main id="app"></main>
+
+<script>
+const S = { token: localStorage.getItem('token'), name: localStorage.getItem('name'), role: localStorage.getItem('role') };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+async function api(path, method = 'GET', body) {
+  const r = await fetch('/api' + path, {
+    method,
+    headers: { 'Content-Type': 'application/json', ...(S.token ? { Authorization: 'Bearer ' + S.token } : {}) },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 401 && S.token) { logout(); throw new Error(d.error); }
+  if (!r.ok) throw new Error(d.error || 'Xatolik');
+  return d;
+}
+
+function logout() {
+  localStorage.clear();
+  S.token = S.name = S.role = null;
+  loginView();
+}
+
+function header() {
+  $('who').innerHTML = S.token
+    ? `<span class="muted">${esc(S.name)}${S.role === 'admin' ? ' (admin)' : ''}</span> <button class="sec" onclick="logout()">Chiqish</button>`
+    : '';
+}
+
+/* ---------- Kirish ---------- */
+function loginView() {
+  header();
+  $('app').innerHTML = `
+    <div class="card">
+      <h2>Kirish</h2>
+      <input type="text" id="n" placeholder="Ism" autocomplete="username">
+      <input type="password" id="p" placeholder="Parol" autocomplete="current-password">
+      <div class="err" id="e"></div>
+      <div class="row">
+        <button onclick="auth('login')">Kirish</button>
+        <button class="sec" onclick="auth('register')">Ro'yxatdan o'tish</button>
+      </div>
+    </div>`;
+}
+
+async function auth(mode) {
+  try {
+    const d = await api('/auth', 'POST', { mode, name: $('n').value, pass: $('p').value });
+    S.token = d.token; S.name = d.name; S.role = d.role;
+    localStorage.setItem('token', d.token); localStorage.setItem('name', d.name); localStorage.setItem('role', d.role);
+    home();
+  } catch (e) { $('e').textContent = e.message; }
+}
+
+/* ---------- Bosh sahifa ---------- */
+async function home() {
+  if (!S.token) return loginView();
+  header();
+  const tests = await api('/tests');
+  const admin = S.role === 'admin';
+  $('app').innerHTML = `
+    ${admin ? `<div class="card"><h2>Yangi test qo'shish</h2>
+      <div class="row"><input type="text" id="tt" placeholder="Test nomi"><button onclick="addTest()">Qo'shish</button></div>
+      <div class="err" id="e"></div></div>` : ''}
+    <div class="card">
+      <h2>Testlar</h2>
+      ${tests.length ? tests.map((t) => `
+        <div class="item">
+          <div><b>${esc(t.title)}</b><div class="muted">${t.count} ta savol</div></div>
+          <div class="row">
+            <button onclick="openTest('${t.id}')">${admin ? 'Tahrirlash' : 'Boshlash'}</button>
+            ${admin ? `<button class="del" onclick="delTest('${t.id}')">O'chirish</button>` : ''}
+          </div>
+        </div>`).join('') : '<div class="muted">Hozircha testlar yo\'q</div>'}
+    </div>
+    <button class="sec" onclick="resultsView()">${admin ? 'Barcha natijalar' : 'Mening natijalarim'}</button>`;
+}
+
+async function addTest() {
+  try { const d = await api('/tests', 'POST', { title: $('tt').value }); openTest(d.id); }
+  catch (e) { $('e').textContent = e.message; }
+}
+async function delTest(id) {
+  if (confirm("Testni o'chirasizmi?")) { await api('/tests/' + id, 'DELETE'); home(); }
+}
+
+/* ---------- Test ---------- */
+async function openTest(id) {
+  const t = await api('/tests/' + id);
+  const admin = S.role === 'admin';
+  const qs = t.questions.map((q) => {
+    const open = q.num > 35;
+    let body;
+    if (admin) {
+      body = `<div class="ok">To'g'ri javob: ${open ? 'a) ' + esc(q.correct.a) + ' &nbsp; b) ' + esc(q.correct.b) : esc(q.correct)}</div>
+        <button class="del" onclick="delQ('${t.id}',${q.num})">Savolni o'chirish</button>`;
+    } else if (open) {
+      body = `<input type="text" data-a="${q.num}a" placeholder="a) javob"><input type="text" data-a="${q.num}b" placeholder="b) javob">`;
+    } else {
+      body = `<div class="opts">${['A','B','C','D'].map((o) => `<label><input type="radio" name="q${q.num}" value="${o}">${o}</label>`).join('')}</div>`;
+    }
+    return `<div class="card q"><b>${q.num}-savol</b><img src="/uploads/${q.image}" alt="">${body}</div>`;
+  }).join('');
+
+  $('app').innerHTML = `
+    <button class="sec" onclick="home()">← Orqaga</button>
+    <h2 style="margin-top:12px">${esc(t.title)}</h2>
+    ${admin ? adminForm(t.id) : ''}
+    ${qs || '<div class="card muted">Bu testda hali savollar yo\'q</div>'}
+    ${!admin && t.questions.length ? `<button onclick="submitTest('${t.id}')">Yakunlash</button><div id="res"></div>` : ''}`;
+  if (admin) numChanged();
+}
+
+function adminForm(id) {
+  return `<div class="card">
+    <h2>Savol qo'shish / almashtirish</h2>
+    <input type="number" id="num" min="1" max="45" placeholder="Savol raqami (1–45)" oninput="numChanged()">
+    <div class="muted">Rasm (savol va variantlar rasmda bo'ladi):</div>
+    <input type="file" id="img" accept="image/*" style="margin:6px 0 12px">
+    <div id="ans"></div>
+    <div class="err" id="e"></div>
+    <button onclick="saveQ('${id}')">Saqlash</button>
+  </div>`;
+}
+
+function numChanged() {
+  const n = parseInt($('num').value, 10);
+  if (n > 35) {
+    $('ans').innerHTML = `<div class="muted">Ochiq savol: ikkita to'g'ri javob</div>
+      <input type="text" id="ca" placeholder="a) to'g'ri javob"><input type="text" id="cb" placeholder="b) to'g'ri javob">`;
+  } else {
+    $('ans').innerHTML = `<div class="muted">To'g'ri variant:</div>
+      <div class="opts" style="margin:6px 0 12px">${['A','B','C','D'].map((o) => `<label><input type="radio" name="cor" value="${o}">${o}</label>`).join('')}</div>`;
+  }
+}
+
+function readFile(f) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
+}
+
+async function saveQ(id) {
+  try {
+    const num = parseInt($('num').value, 10);
+    const f = $('img').files[0];
+    const body = { num };
+    if (f) body.image = await readFile(f);
+    if (num > 35) body.correct = { a: $('ca').value, b: $('cb').value };
+    else { const c = document.querySelector('input[name=cor]:checked'); body.correct = c ? c.value : ''; }
+    await api('/tests/' + id + '/questions', 'POST', body);
+    openTest(id);
+  } catch (e) { $('e').textContent = e.message; }
+}
+
+async function delQ(id, num) {
+  if (confirm(num + "-savolni o'chirasizmi?")) { await api('/tests/' + id + '/questions/' + num, 'DELETE'); openTest(id); }
+}
+
+async function submitTest(id) {
+  const answers = {};
+  document.querySelectorAll('input[type=radio]:checked').forEach((r) => { answers[r.name.slice(1)] = r.value; });
+  document.querySelectorAll('input[data-a]').forEach((i) => {
+    const k = i.dataset.a, num = k.slice(0, -1), part = k.slice(-1);
+    (answers[num] = answers[num] || {})[part] = i.value;
+  });
+  if (!confirm('Javoblarni yuborasizmi?')) return;
+  const r = await api('/tests/' + id + '/submit', 'POST', { answers });
+  $('app').innerHTML = `<div class="card"><h2>Natija</h2><div class="big">${r.score} / ${r.max}</div>
+    <p class="muted">Variantli savollar — 1 ball, ochiq savollarda a va b — har biri 1 ball.</p>
+    <button onclick="home()">Bosh sahifa</button></div>`;
+}
+
+/* ---------- Natijalar ---------- */
+async function resultsView() {
+  const list = await api('/results');
+  const admin = S.role === 'admin';
+  $('app').innerHTML = `<button class="sec" onclick="home()">← Orqaga</button>
+    <div class="card" style="margin-top:12px"><h2>Natijalar</h2>
+    ${list.length ? `<table><tr>${admin ? '<th>Foydalanuvchi</th>' : ''}<th>Test</th><th>Ball</th><th>Sana</th></tr>
+      ${list.map((r) => `<tr>${admin ? `<td>${esc(r.user)}</td>` : ''}<td>${esc(r.title)}</td><td>${r.score}/${r.max}</td><td>${new Date(r.date).toLocaleString()}</td></tr>`).join('')}</table>`
+      : '<div class="muted">Natijalar yo\'q</div>'}</div>`;
+}
+
+S.token ? home().catch(loginView) : loginView();
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "name": "test-sayti",
+  "version": "1.0.0",
+  "description": "Oddiy test sayti",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" }
+}
