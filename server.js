@@ -173,6 +173,10 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       return res.end(fs.readFileSync(path.join(__dirname, 'index.html')));
     }
+    if (req.method === 'GET' && p === '/aplus-icon.svg') {
+      res.writeHead(200, { 'Content-Type': 'image/svg+xml; charset=utf-8', 'Cache-Control': 'public, max-age=86400' });
+      return res.end(fs.readFileSync(path.join(__dirname, 'aplus-icon.svg')));
+    }
     if (req.method === 'GET' && p.startsWith('/uploads/')) {
       return serveFile(req, res, path.join(UPLOADS, path.basename(p)));
     }

@@ -25,3 +25,9 @@ Ism `serik`, parol `serik` bilan kiring.
 
 ## Xavfsizlik eslatmasi
 Internetga chiqarishdan oldin `server.js` boshidagi `ADMIN_NAME` va `ADMIN_PASS` ni o'zgartiring.
+
+
+## Yangi dizayn
+- Aplus brend belgisi va brauzer yorlig‘i uchun `aplus-icon.svg` qo‘shildi.
+- Yuqori paneldagi `Kun/Tun rejimi` tugmasi orqali rang mavzusi almashtiriladi; tanlov brauzerda saqlanadi.
+- Savol sahifasi kengroq, javob tugmalari va navigatsiya qulayroq ko‘rinishga keltirildi.
