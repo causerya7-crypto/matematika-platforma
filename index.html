@@ -424,9 +424,12 @@ async function finish() {
     $('app').innerHTML = `<div class="card"><h2>Test natijasi</h2><div class="big">${r.score} / ${r.max} ball</div>
       <p><b>Foiz:</b> ${pct}% &nbsp; <b>Daraja:</b> ${grade}</p>
       <p class="muted">Ballar admin belgilagan savol qiymatlari asosida hisoblandi. Ochiq savolda savol balli a va b javoblari orasida teng taqsimlanadi.</p>
-      <div class="row"><button onclick="makeCertificate(${JSON.stringify(S.profileName || S.name)}, ${JSON.stringify(T.title)}, ${JSON.stringify(String(r.score))}, ${JSON.stringify(String(r.max))}, ${JSON.stringify(String(pct))}, ${JSON.stringify(grade)}, ${JSON.stringify(cert)}, ${JSON.stringify(S.photo || '')})">Sertifikatni olish / chop etish</button>
+      <div class="row"><button id="getCertificateBtn" type="button">📜 Sertifikatni olish / chop etish</button>
       <button class="sec" onclick="home()">Bosh sahifa</button></div>
       <p class="muted">Sertifikat Aplus o‘quv markazining ichki natija sertifikati bo‘lib, davlat yoki rasmiy milliy sertifikat o‘rnini bosmaydi.</p></div>`;
+    $('getCertificateBtn').addEventListener('click', () => {
+      makeCertificate(S.profileName || S.name, T.title, String(r.score), String(r.max), String(pct), grade, cert, S.photo || '');
+    });
   } catch (e) { alert(e.message); }
 }
 
