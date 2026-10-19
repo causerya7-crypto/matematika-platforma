@@ -150,13 +150,14 @@ function grade(test, answers) {
   let score = 0, max = 0;
   for (const q of test.questions) {
     const a = answers[q.num];
+    const points = Number.isFinite(Number(q.points)) && Number(q.points) >= 0 ? Number(q.points) : (q.num <= MAX_CHOICE ? 1 : 2);
+    max += points;
     if (q.num <= MAX_CHOICE) {
-      max += 1;
-      if (a && a === q.correct) score += 1;
+      if (a && a === q.correct) score += points;
     } else {
-      max += 2;
-      if (a && norm(a.a) && norm(a.a) === norm(q.correct.a)) score += 1;
-      if (a && norm(a.b) && norm(a.b) === norm(q.correct.b)) score += 1;
+      const each = points / 2;
+      if (a && norm(a.a) && norm(a.a) === norm(q.correct.a)) score += each;
+      if (a && norm(a.b) && norm(a.b) === norm(q.correct.b)) score += each;
     }
   }
   return { score, max };
@@ -175,12 +176,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && p.startsWith('/uploads/')) {
       return serveFile(req, res, path.join(UPLOADS, path.basename(p)));
     }
-    if (req.method === 'GET' && p === '/favicon.png') {
-      const f = path.join(__dirname, 'favicon.png');
-      if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
-      res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' });
-      return res.end(fs.readFileSync(f));
-    }
+
     if (!p.startsWith('/api/')) { res.writeHead(404); return res.end('Topilmadi'); }
 
     // Kirish / ro'yxatdan o'tish
@@ -236,8 +232,8 @@ const server = http.createServer(async (req, res) => {
         const qs = t.questions
           .slice().sort((a, b) => a.num - b.num)
           .map((q) => (isAdmin
-            ? { num: q.num, image: q.image, correct: q.correct, video: videoInfo(q) }
-            : { num: q.num, image: q.image }));
+            ? { num: q.num, image: q.image, correct: q.correct, points: Number.isFinite(Number(q.points)) ? Number(q.points) : (q.num <= MAX_CHOICE ? 1 : 2), video: videoInfo(q) }
+            : { num: q.num, image: q.image, points: Number.isFinite(Number(q.points)) ? Number(q.points) : (q.num <= MAX_CHOICE ? 1 : 2) }));
         return send(res, 200, { id: t.id, title: t.title, questions: qs });
       }
       if (req.method === 'DELETE') {
@@ -331,11 +327,13 @@ const server = http.createServer(async (req, res) => {
           correct = { a, b };
         }
         const old = t.questions.find((q) => q.num === num);
+        const rawPoints = body.points === undefined ? (old && old.points !== undefined ? old.points : (num <= MAX_CHOICE ? 1 : 2)) : Number(body.points);
+        if (!Number.isFinite(rawPoints) || rawPoints < 0 || rawPoints > 1000) return send(res, 400, { error: "Ball 0 dan 1000 gacha bo\'lishi kerak" });
         let image = old ? old.image : null;
         if (body.image) { removeFile(image); image = saveImage(body.image); }
         if (!image) return send(res, 400, { error: 'Rasm yuklang' });
         t.questions = t.questions.filter((q) => q.num !== num);
-        t.questions.push({ num, image, correct, video: old ? old.video || null : null });
+        t.questions.push({ num, image, correct, points: rawPoints, video: old ? old.video || null : null });
         save();
         return send(res, 200, { ok: true });
       }
@@ -347,6 +345,20 @@ const server = http.createServer(async (req, res) => {
         save();
         return send(res, 200, { ok: true });
       }
+    }
+
+    m = /^\/api\/tests\/([a-f0-9]+)\/questions\/(\d+)\/points$/.exec(p);
+    if (m && req.method === 'POST') {
+      if (!isAdmin) return send(res, 403, { error: "Ruxsat yo'q" });
+      const t = db.tests.find((x) => x.id === m[1]);
+      const q = t && t.questions.find((x) => x.num === parseInt(m[2], 10));
+      if (!q) return send(res, 404, { error: 'Savol topilmadi' });
+      const body = await readBody(req);
+      const points = Number(body.points);
+      if (!Number.isFinite(points) || points < 0 || points > 1000) return send(res, 400, { error: "Ball 0 dan 1000 gacha bo\'lishi kerak" });
+      q.points = points;
+      save();
+      return send(res, 200, { ok: true, points });
     }
 
     m = /^\/api\/tests\/([a-f0-9]+)\/submit$/.exec(p);
