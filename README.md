@@ -31,3 +31,10 @@ Internetga chiqarishdan oldin `server.js` boshidagi `ADMIN_NAME` va `ADMIN_PASS`
 - Aplus brend belgisi va brauzer yorlig‘i uchun `aplus-icon.svg` qo‘shildi.
 - Yuqori paneldagi `Kun/Tun rejimi` tugmasi orqali rang mavzusi almashtiriladi; tanlov brauzerda saqlanadi.
 - Savol sahifasi kengroq, javob tugmalari va navigatsiya qulayroq ko‘rinishga keltirildi.
+
+
+## Dizayn yangilanishi
+- Yagona rang palitrasi, yumshoq soyalar va yaxshilangan tipografika.
+- Kirish, profil, savol kartalari, variant tugmalari va jadvallar uchun moslashtirilgan komponentlar.
+- Telefon ekranlari, klaviatura fokusi va kamaytirilgan animatsiyalar uchun qo‘shimcha moslashuv.
+- Mavjud API va test funksiyalari saqlab qolindi.

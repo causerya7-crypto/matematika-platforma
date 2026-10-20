@@ -159,6 +159,42 @@
   }
   @media (prefers-reduced-motion: reduce) { *,*:before,*:after { transition:none!important; scroll-behavior:auto!important; } }
 </style>
+
+<style id="aplus-polish">
+:root{--bg:#f5f7fc;--card:#fff;--text:#18233b;--muted:#69758e;--main:#455cf5;--bad:#dc4f62;--ok:#17966d;--line:#e5e9f3;--soft:#f0f3fb;--shadow:0 14px 36px rgba(34,49,93,.065);color-scheme:light}
+:root[data-theme="dark"]{--bg:#0c1120;--card:#131b2d;--text:#edf1ff;--muted:#a4aec5;--main:#8b9bff;--bad:#ff7889;--ok:#4bd4a1;--line:#2a3550;--soft:#1c2740;--shadow:0 18px 44px rgba(0,0,0,.22);color-scheme:dark}
+html{scroll-behavior:smooth}body{background:radial-gradient(ellipse at 10% 0%,color-mix(in srgb,var(--main) 6%,transparent),transparent 35%),var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.01em}body:before{height:3px;background:linear-gradient(90deg,#4f46e5,#8b5cf6,#f0c45b)}
+header{background:color-mix(in srgb,var(--card) 88%,transparent);backdrop-filter:blur(18px);border-bottom:1px solid color-mix(in srgb,var(--line) 85%,transparent);box-shadow:0 5px 24px #17255408;min-height:80px}
+.brand-icon{width:48px;height:48px;border-radius:16px;background:linear-gradient(145deg,#fff0b8,#ebc85d 55%,#b88a23);box-shadow:0 8px 20px #bd942f30;border-color:#f8e5a7;font-size:21px}
+.brand-copy{letter-spacing:.055em}.brand-copy span{letter-spacing:.15em;font-size:9px}
+main{max-width:1120px;padding:34px 24px 72px}.card{border-radius:24px;border-color:var(--line);padding:clamp(22px,3.6vw,36px);box-shadow:var(--shadow);background:var(--card)}.card h2{letter-spacing:-.045em;font-weight:800;line-height:1.2}
+#app>.card:first-child:has(#n){border-radius:28px;padding:clamp(30px,5vw,48px);box-shadow:0 24px 70px rgba(44,59,120,.10)}
+#app>.card:first-child:has(#n) h2{font-size:clamp(28px,3.5vw,36px);margin-bottom:10px}
+#app>.card:first-child:has(#n) h2:before{content:"APLUS · MATEMATIKA";display:block;font-size:10px;letter-spacing:.2em;color:var(--main);font-weight:850;margin-bottom:15px}
+#app>.card:first-child:has(#n) h2:after{width:66px;height:4px;margin-top:16px}
+button{border-radius:13px;padding:12px 17px;font-weight:750;letter-spacing:-.01em;box-shadow:0 4px 10px #243a790d;transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}
+button:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 18px #243a7914}button:focus-visible,input:focus-visible{outline:3px solid color-mix(in srgb,var(--main) 35%,transparent);outline-offset:2px}
+button.sec{background:var(--soft);border:1px solid var(--line)}button.del{background:var(--bad)}
+input[type=text],input[type=password],input[type=number]{border-radius:13px;min-height:48px;background:var(--card);border-color:var(--line);transition:border .15s,box-shadow .15s}
+input::placeholder{color:color-mix(in srgb,var(--muted) 78%,transparent)}
+.profile-chip{border-radius:16px;background:var(--card);box-shadow:0 3px 12px #17255408}.avatar{border-radius:13px}
+.item{padding:19px 0}.item>div:first-child b{font-weight:750}.item .row button{min-width:108px}
+.top{border-radius:18px;box-shadow:0 5px 18px #17255407}.bar{height:9px;background:var(--line)}.bar i{background:linear-gradient(90deg,var(--main),#9c70f5)}
+.strip button{border-radius:12px;font-weight:750;background:var(--soft);box-shadow:none}.strip button.cur{outline:2px solid var(--main);outline-offset:2px}.strip button.right{background:var(--ok);border-color:var(--ok)}.strip button.wrong{background:var(--bad);border-color:var(--bad)}
+.q{border-radius:22px;background:var(--card);border-color:var(--line)}.q>img{border-radius:16px;background:var(--soft);padding:4px}.q>b{font-size:20px;letter-spacing:-.03em}
+button.opt{border-radius:16px;background:var(--card);color:var(--text);border:1.5px solid var(--line);box-shadow:0 3px 10px #17255406;min-width:78px;min-height:56px}button.opt:hover:not(:disabled){background:color-mix(in srgb,var(--main) 7%,var(--card));border-color:var(--main);box-shadow:0 7px 16px color-mix(in srgb,var(--main) 12%,transparent)}button.opt.right{background:color-mix(in srgb,var(--ok) 12%,var(--card));border-color:var(--ok);color:var(--ok)}button.opt.wrong{background:color-mix(in srgb,var(--bad) 10%,var(--card));border-color:var(--bad);color:var(--bad)}
+input.right{background:color-mix(in srgb,var(--ok) 8%,var(--card));color:var(--text)}input.wrong{background:color-mix(in srgb,var(--bad) 8%,var(--card));color:var(--text)}
+.fb{border-radius:12px;padding:10px 13px;background:var(--soft)}.video video,.video iframe{border-radius:16px;box-shadow:0 8px 22px #00000012}.vid{border-top-color:var(--line)}
+table{border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--line);border-radius:14px}th,td{padding:13px 14px;border-top:1px solid var(--line)}th{background:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.06em}tr:first-child th{border-top:0}td{background:var(--card)}
+.profile-form label{color:var(--muted);letter-spacing:.01em}.err{font-weight:600}.ok{color:var(--ok)}
+/* Accessible upload surfaces */
+input[type=file]{max-width:100%;padding:10px;border:1px dashed var(--line);border-radius:12px;background:var(--soft);color:var(--muted)}
+/* Tables on narrow screens remain scrollable instead of breaking layout */
+#app{min-width:0}#app .card{min-width:0}#app table{display:block;max-width:100%;overflow-x:auto;white-space:nowrap}
+@media(max-width:640px){header{min-height:68px;padding:10px 13px;gap:9px}.brand-icon{width:40px;height:40px;border-radius:13px}.brand-copy{font-size:13px}.brand-copy span{font-size:7px}main{padding:20px 13px 44px}.card{padding:19px;border-radius:19px;margin-bottom:15px}.card h2{font-size:23px}.profile-chip{padding:4px 7px}.profile-chip .muted{display:none}.theme-toggle{min-height:40px}.q{padding:18px}.q>b{font-size:18px}.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.opts button.opt{width:100%;min-width:0}.strip{gap:7px}.strip button{min-width:36px;min-height:37px;padding:7px 5px}.top{padding:12px}.row{gap:8px}.row button{max-width:100%}.item .row{display:grid;grid-template-columns:1fr 1fr}.item .row button{min-width:0}#app>.card:first-child:has(#n){margin:24px auto;padding:28px 22px;border-radius:24px}#app>.card:first-child:has(#n) h2{font-size:29px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}
+</style>
+
 </head>
 <body>
 <header>
@@ -238,8 +274,9 @@ function loginView() {
   $('app').innerHTML = `
     <div class="card">
       <h2>Kirish</h2>
-      <input type="text" id="n" placeholder="Ism" autocomplete="username">
-      <input type="password" id="p" placeholder="Parol" autocomplete="current-password">
+      <p class="muted" style="margin:-5px 0 22px;max-width:38ch">Bilimingizni sinang, natijalaringizni kuzating va matematikada yangi marralarni zabt eting.</p>
+      <label for="n" style="display:block;font-size:13px;font-weight:750;margin:10px 0 6px">Foydalanuvchi nomi</label><input type="text" id="n" placeholder="Ismingizni kiriting" autocomplete="username">
+      <label for="p" style="display:block;font-size:13px;font-weight:750;margin:10px 0 6px">Parol</label><input type="password" id="p" placeholder="Parolingizni kiriting" autocomplete="current-password">
       <div class="err" id="e"></div>
       <div class="row">
         <button onclick="auth('login')">Kirish</button>
