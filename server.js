@@ -177,10 +177,6 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'image/svg+xml; charset=utf-8', 'Cache-Control': 'public, max-age=86400' });
       return res.end(fs.readFileSync(path.join(__dirname, 'aplus-icon.svg')));
     }
-    if (req.method === 'GET' && p === '/mascot-aplus.png') {
-      res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' });
-      return res.end(fs.readFileSync(path.join(__dirname, 'mascot-aplus.png')));
-    }
     if (req.method === 'GET' && p.startsWith('/uploads/')) {
       return serveFile(req, res, path.join(UPLOADS, path.basename(p)));
     }
