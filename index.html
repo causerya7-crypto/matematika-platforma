@@ -193,7 +193,29 @@ input[type=file]{max-width:100%;padding:10px;border:1px dashed var(--line);borde
 #app{min-width:0}#app .card{min-width:0}#app table{display:block;max-width:100%;overflow-x:auto;white-space:nowrap}
 @media(max-width:640px){header{min-height:68px;padding:10px 13px;gap:9px}.brand-icon{width:40px;height:40px;border-radius:13px}.brand-copy{font-size:13px}.brand-copy span{font-size:7px}main{padding:20px 13px 44px}.card{padding:19px;border-radius:19px;margin-bottom:15px}.card h2{font-size:23px}.profile-chip{padding:4px 7px}.profile-chip .muted{display:none}.theme-toggle{min-height:40px}.q{padding:18px}.q>b{font-size:18px}.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.opts button.opt{width:100%;min-width:0}.strip{gap:7px}.strip button{min-width:36px;min-height:37px;padding:7px 5px}.top{padding:12px}.row{gap:8px}.row button{max-width:100%}.item .row{display:grid;grid-template-columns:1fr 1fr}.item .row button{min-width:0}#app>.card:first-child:has(#n){margin:24px auto;padding:28px 22px;border-radius:24px}#app>.card:first-child:has(#n) h2{font-size:29px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}
-</style>
+/* APLUS animated mascot login scene */
+.login-stage{width:min(100%,1000px);margin:clamp(24px,6vh,70px) auto 30px;display:grid;grid-template-columns:minmax(300px,390px) minmax(300px,1fr);align-items:center;gap:clamp(20px,5vw,72px)}
+.login-stage>.card{margin:0;position:relative;z-index:2}
+.login-mascot{position:relative;min-width:0;display:flex;align-items:center;justify-content:center;min-height:400px;isolation:isolate}
+.login-mascot:before{content:"";position:absolute;width:min(85%,360px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(79,110,255,.13),rgba(242,194,77,.08) 55%,transparent 72%);z-index:-1;animation:mascotGlow 5s ease-in-out infinite}
+.login-mascot img{width:min(100%,450px);max-height:530px;object-fit:contain;filter:drop-shadow(0 24px 30px rgba(38,55,111,.12));animation:mascotFloat 4.5s ease-in-out infinite;transform-origin:50% 80%}
+.mascot-bubble{position:absolute;top:10%;right:3%;padding:12px 17px;border:1px solid var(--line);border-radius:18px 18px 5px 18px;background:var(--card);color:var(--text);box-shadow:var(--shadow);font-size:14px;font-weight:800;animation:bubbleFloat 3s ease-in-out infinite;transition:all .25s ease}
+.mascot-bubble:after{content:"";position:absolute;right:12px;bottom:-7px;width:12px;height:12px;background:var(--card);border-right:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg)}
+.mascot-caption{position:absolute;bottom:2%;left:0;right:0;text-align:center;color:var(--muted);font-size:14px;font-weight:650;letter-spacing:.01em}
+.login-mascot[data-mood="focus"] img{animation:mascotThink 2.2s ease-in-out infinite}
+.login-mascot[data-mood="happy"] img{animation:mascotHappy .65s ease-in-out 2}
+.login-mascot[data-mood="oops"] img{animation:mascotOops .45s ease-in-out 2}
+.login-mascot[data-mood="focus"] .mascot-bubble{border-color:#8b9bff}
+.login-mascot[data-mood="happy"] .mascot-bubble{background:color-mix(in srgb,var(--ok) 12%,var(--card));border-color:var(--ok)}
+.login-mascot[data-mood="oops"] .mascot-bubble{background:color-mix(in srgb,var(--bad) 9%,var(--card));border-color:var(--bad)}
+@keyframes mascotFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-10px) rotate(1deg)}}
+@keyframes mascotThink{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-7px) rotate(-1.5deg)}}
+@keyframes mascotHappy{0%,100%{transform:translateY(0) scale(1)}45%{transform:translateY(-13px) scale(1.025) rotate(1deg)}}
+@keyframes mascotOops{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px) rotate(-1deg)}75%{transform:translateX(5px) rotate(1deg)}}
+@keyframes bubbleFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes mascotGlow{0%,100%{transform:scale(.96);opacity:.7}50%{transform:scale(1.06);opacity:1}}
+@media(max-width:760px){.login-stage{grid-template-columns:1fr;gap:4px;margin:18px auto 30px;max-width:440px}.login-stage>.card{grid-row:1}.login-mascot{grid-row:2;min-height:290px;max-height:340px}.login-mascot img{width:min(80%,300px);max-height:330px}.mascot-bubble{top:8%;right:4%;font-size:12px;padding:9px 13px}.mascot-caption{bottom:0;font-size:12px}}
+
 
 </head>
 <body>
@@ -272,26 +294,41 @@ function saveProfile() {
 function loginView() {
   header();
   $('app').innerHTML = `
-    <div class="card">
-      <h2>Kirish</h2>
-      <p class="muted" style="margin:-5px 0 22px;max-width:38ch">Bilimingizni sinang, natijalaringizni kuzating va matematikada yangi marralarni zabt eting.</p>
-      <label for="n" style="display:block;font-size:13px;font-weight:750;margin:10px 0 6px">Foydalanuvchi nomi</label><input type="text" id="n" placeholder="Ismingizni kiriting" autocomplete="username">
-      <label for="p" style="display:block;font-size:13px;font-weight:750;margin:10px 0 6px">Parol</label><input type="password" id="p" placeholder="Parolingizni kiriting" autocomplete="current-password">
-      <div class="err" id="e"></div>
-      <div class="row">
-        <button onclick="auth('login')">Kirish</button>
-        <button class="sec" onclick="auth('register')">Ro'yxatdan o'tish</button>
+    <section class="login-stage" aria-label="APLUS platformasiga kirish">
+      <div class="card login-card">
+        <h2>Kirish</h2>
+        <p class="muted" style="margin:-5px 0 22px;max-width:38ch">Bilimingizni sinang, natijalaringizni kuzating va matematikada yangi marralarni zabt eting.</p>
+        <label for="n" style="display:block;font-size:13px;font-weight:750;margin:10px 0 6px">Foydalanuvchi nomi</label><input type="text" id="n" placeholder="Ismingizni kiriting" autocomplete="username">
+        <label for="p" style="display:block;font-size:13px;font-weight:750;margin:10px 0 6px">Parol</label><input type="password" id="p" placeholder="Parolingizni kiriting" autocomplete="current-password">
+        <div class="err" id="e"></div>
+        <div class="row">
+          <button onclick="auth('login')">Kirish</button>
+          <button class="sec" onclick="auth('register')">Ro'yxatdan o'tish</button>
+        </div>
       </div>
-    </div>`;
+      <aside class="login-mascot" id="loginMascot" data-mood="idle" aria-live="polite">
+        <div class="mascot-bubble" id="mascotBubble">Salom! Boshlaymizmi? ✨</div>
+        <img src="/mascot-aplus.png" alt="APLUSning quvnoq, o‘ylanib turgan matematika qahramoni">
+        <div class="mascot-caption" id="mascotCaption">Har bir katta natija kichik qadamdan boshlanadi.</div>
+      </aside>
+    </section>`;
+  const mascot = $('loginMascot'), bubble = $('mascotBubble'), caption = $('mascotCaption');
+  const setMood = (mood, message, line) => { if (!mascot) return; mascot.dataset.mood = mood; bubble.textContent = message; caption.textContent = line; };
+  $('n').addEventListener('focus', () => setMood('happy', 'Salom! 😊', 'Ismingizni kiriting — sizni kutgandik!'));
+  $('n').addEventListener('input', () => setMood('happy', 'Ajoyib! ✨', 'Bilim sari birinchi qadamni qo‘ydingiz.'));
+  $('p').addEventListener('focus', () => setMood('focus', 'Sir saqlanadi! 🤫', 'Parol kiritayotganda men ko‘zlarimni yumaman.'));
+  $('p').addEventListener('input', () => setMood('focus', 'Diqqat bilan… 🧠', 'Siz uddalaysiz. Men sizga ishonaman!'));
+  $('p').addEventListener('blur', () => setMood('idle', 'Omad yor bo‘lsin! ⭐', 'Har bir katta natija kichik qadamdan boshlanadi.'));
 }
 
 async function auth(mode) {
   try {
     const d = await api('/auth', 'POST', { mode, name: $('n').value, pass: $('p').value });
     S.token = d.token; S.name = d.name; S.role = d.role;
+    const mascot = $('loginMascot'); if (mascot) { mascot.dataset.mood = 'happy'; $('mascotBubble').textContent = 'Xush kelibsiz! 🎉'; $('mascotCaption').textContent = 'Qani, yangi marralar sari!'; }
     localStorage.setItem('token', d.token); localStorage.setItem('name', d.name); localStorage.setItem('role', d.role);
     if (!S.profileName) profileView(); else home();
-  } catch (e) { $('e').textContent = e.message; }
+  } catch (e) { $('e').textContent = e.message; const mascot = $('loginMascot'); if (mascot) { mascot.dataset.mood = 'oops'; $('mascotBubble').textContent = 'Qayta urinib ko‘ramiz! 💪'; $('mascotCaption').textContent = 'Xavotir olmang, xatolar ham o‘rganishning bir qismi.'; } }
 }
 
 /* ---------- Bosh sahifa ---------- */
@@ -589,7 +626,7 @@ async function saveQ() {
     else { const c = document.querySelector('input[name=cor]:checked'); body.correct = c ? c.value : ''; }
     await api('/tests/' + T.id + '/questions', 'POST', body);
     openTest(T.id);
-  } catch (e) { $('e').textContent = e.message; }
+  } catch (e) { $('e').textContent = e.message; const mascot = $('loginMascot'); if (mascot) { mascot.dataset.mood = 'oops'; $('mascotBubble').textContent = 'Qayta urinib ko‘ramiz! 💪'; $('mascotCaption').textContent = 'Xavotir olmang, xatolar ham o‘rganishning bir qismi.'; } }
 }
 
 async function savePoints(num) {
